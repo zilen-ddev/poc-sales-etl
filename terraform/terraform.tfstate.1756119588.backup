@@ -1,0 +1,726 @@
+{
+  "version": 4,
+  "terraform_version": "1.12.2",
+  "serial": 34,
+  "lineage": "576f5b14-ea7b-37e6-3d56-060f8a311720",
+  "outputs": {
+    "cloudwatch_log_group": {
+      "value": "/aws/lambda/sales-csv-processor",
+      "type": "string"
+    },
+    "lambda_function_arn": {
+      "value": "arn:aws:lambda:ap-south-1:102413378525:function:sales-csv-processor",
+      "type": "string"
+    },
+    "lambda_function_name": {
+      "value": "sales-csv-processor",
+      "type": "string"
+    },
+    "processing_dlq_url": {
+      "value": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-processing-dlq-zilen",
+      "type": "string"
+    },
+    "processing_queue_arn": {
+      "value": "arn:aws:sqs:ap-south-1:102413378525:sales-processing-queue-zilen",
+      "type": "string"
+    },
+    "processing_queue_url": {
+      "value": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-processing-queue-zilen",
+      "type": "string"
+    },
+    "s3_bucket_arn": {
+      "value": "arn:aws:s3:::daily-sales-reports-sbkcdzid",
+      "type": "string"
+    },
+    "s3_bucket_name": {
+      "value": "daily-sales-reports-zilen",
+      "type": "string"
+    },
+    "validation_failed_dlq_url": {
+      "value": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-validation-failed-dlq-zilen",
+      "type": "string"
+    },
+    "validation_failed_queue_arn": {
+      "value": "arn:aws:sqs:ap-south-1:102413378525:sales-validation-failed-queue-zilen",
+      "type": "string"
+    },
+    "validation_failed_queue_url": {
+      "value": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-validation-failed-queue-zilen",
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "aws_cloudwatch_log_group",
+      "name": "lambda_logs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:logs:ap-south-1:102413378525:log-group:/aws/lambda/sales-csv-processor",
+            "id": "/aws/lambda/sales-csv-processor",
+            "kms_key_id": "",
+            "log_group_class": "STANDARD",
+            "name": "/aws/lambda/sales-csv-processor",
+            "name_prefix": "",
+            "retention_in_days": 14,
+            "skip_destroy": false,
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.lambda_role",
+            "aws_lambda_function.csv_processor",
+            "aws_s3_bucket.sales_reports",
+            "aws_sqs_queue.sales_processing",
+            "aws_sqs_queue.sales_processing_dlq",
+            "aws_sqs_queue.sales_validation_failed",
+            "aws_sqs_queue.sales_validation_failed_dlq"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_policy",
+      "name": "lambda_policy",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::102413378525:policy/sales-csv-processor-lambda-policy",
+            "attachment_count": 1,
+            "description": "Policy for CSV processor Lambda function",
+            "id": "arn:aws:iam::102413378525:policy/sales-csv-processor-lambda-policy",
+            "name": "sales-csv-processor-lambda-policy",
+            "name_prefix": "",
+            "path": "/",
+            "policy": "{\"Statement\":[{\"Action\":[\"s3:GetObject\",\"s3:PutObject\",\"s3:DeleteObject\",\"s3:ListBucket\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:s3:::daily-sales-reports-sbkcdzid\",\"arn:aws:s3:::daily-sales-reports-sbkcdzid/*\"]},{\"Action\":[\"sqs:SendMessage\",\"sqs:GetQueueAttributes\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:sqs:ap-south-1:102413378525:sales-processing-queue\",\"arn:aws:sqs:ap-south-1:102413378525:sales-validation-failed-queue\"]},{\"Action\":[\"logs:CreateLogGroup\",\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:logs:*:*:*\"}],\"Version\":\"2012-10-17\"}",
+            "policy_id": "ANPARPWCQEPO3WMOFAHCH",
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.sales_reports",
+            "aws_sqs_queue.sales_processing",
+            "aws_sqs_queue.sales_processing_dlq",
+            "aws_sqs_queue.sales_validation_failed",
+            "aws_sqs_queue.sales_validation_failed_dlq",
+            "random_string.bucket_suffix"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_policy",
+      "name": "sqs_redrive_policy",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::102413378525:policy/sales-sqs-redrive-policy",
+            "attachment_count": 1,
+            "description": "Policy for SQS redrive operations",
+            "id": "arn:aws:iam::102413378525:policy/sales-sqs-redrive-policy",
+            "name": "sales-sqs-redrive-policy",
+            "name_prefix": "",
+            "path": "/",
+            "policy": "{\"Statement\":[{\"Action\":[\"sqs:ReceiveMessage\",\"sqs:DeleteMessage\",\"sqs:SendMessage\",\"sqs:GetQueueAttributes\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:sqs:ap-south-1:102413378525:sales-processing-queue-zilen\",\"arn:aws:sqs:ap-south-1:102413378525:sales-processing-dlq-zilen\",\"arn:aws:sqs:ap-south-1:102413378525:sales-validation-failed-queue-zilen\",\"arn:aws:sqs:ap-south-1:102413378525:sales-validation-failed-dlq-zilen\"]}],\"Version\":\"2012-10-17\"}",
+            "policy_id": "ANPARPWCQEPOWZ6LEMYZT",
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_sqs_queue.sales_processing",
+            "aws_sqs_queue.sales_processing_dlq",
+            "aws_sqs_queue.sales_validation_failed",
+            "aws_sqs_queue.sales_validation_failed_dlq"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "lambda_role",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::102413378525:role/sales-csv-processor-lambda-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2025-08-25T04:46:56Z",
+            "description": "",
+            "force_detach_policies": false,
+            "id": "sales-csv-processor-lambda-role",
+            "inline_policy": [],
+            "managed_policy_arns": [
+              "arn:aws:iam::102413378525:policy/sales-csv-processor-lambda-policy"
+            ],
+            "max_session_duration": 3600,
+            "name": "sales-csv-processor-lambda-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": {
+              "Environment": "production",
+              "Purpose": "lambda-execution"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Purpose": "lambda-execution"
+            },
+            "unique_id": "AROARPWCQEPOQEVXOKLSB"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "sqs_redrive_role",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::102413378525:role/sales-sqs-redrive-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2025-08-25T04:46:56Z",
+            "description": "",
+            "force_detach_policies": false,
+            "id": "sales-sqs-redrive-role",
+            "inline_policy": [],
+            "managed_policy_arns": [
+              "arn:aws:iam::102413378525:policy/sales-sqs-redrive-policy"
+            ],
+            "max_session_duration": 3600,
+            "name": "sales-sqs-redrive-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": {
+              "Environment": "production",
+              "Purpose": "sqs-redrive"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Purpose": "sqs-redrive"
+            },
+            "unique_id": "AROARPWCQEPO5OFFOJ553"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "lambda_policy_attachment",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "sales-csv-processor-lambda-role-20250825044747239400000002",
+            "policy_arn": "arn:aws:iam::102413378525:policy/sales-csv-processor-lambda-policy",
+            "role": "sales-csv-processor-lambda-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_policy.lambda_policy",
+            "aws_iam_role.lambda_role",
+            "aws_s3_bucket.sales_reports",
+            "aws_sqs_queue.sales_processing",
+            "aws_sqs_queue.sales_processing_dlq",
+            "aws_sqs_queue.sales_validation_failed",
+            "aws_sqs_queue.sales_validation_failed_dlq"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "sqs_redrive_policy_attachment",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "sales-sqs-redrive-role-20250825044747118400000001",
+            "policy_arn": "arn:aws:iam::102413378525:policy/sales-sqs-redrive-policy",
+            "role": "sales-sqs-redrive-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_policy.sqs_redrive_policy",
+            "aws_iam_role.sqs_redrive_role",
+            "aws_sqs_queue.sales_processing",
+            "aws_sqs_queue.sales_processing_dlq",
+            "aws_sqs_queue.sales_validation_failed",
+            "aws_sqs_queue.sales_validation_failed_dlq"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_lambda_function",
+      "name": "csv_processor",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "architectures": [
+              "x86_64"
+            ],
+            "arn": "arn:aws:lambda:ap-south-1:102413378525:function:sales-csv-processor",
+            "code_sha256": "deIKJ4q0h+eVuKH0KsrRjGBXQAYE19k2m0nNfpHjOwc=",
+            "code_signing_config_arn": "",
+            "dead_letter_config": [],
+            "description": "",
+            "environment": [
+              {
+                "variables": {
+                  "PROCESSING_QUEUE_URL": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-processing-queue",
+                  "S3_BUCKET_NAME": "daily-sales-reports-sbkcdzid",
+                  "VALIDATION_FAILED_QUEUE_URL": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-validation-failed-queue"
+                }
+              }
+            ],
+            "ephemeral_storage": [
+              {
+                "size": 512
+              }
+            ],
+            "file_system_config": [],
+            "filename": "../lambda/csv-processor/csv-processor.zip",
+            "function_name": "sales-csv-processor",
+            "handler": "index.handler",
+            "id": "sales-csv-processor",
+            "image_config": [],
+            "image_uri": "",
+            "invoke_arn": "arn:aws:apigateway:ap-south-1:lambda:path/2015-03-31/functions/arn:aws:lambda:ap-south-1:102413378525:function:sales-csv-processor/invocations",
+            "kms_key_arn": "",
+            "last_modified": "2025-08-25T04:47:46.393+0000",
+            "layers": [],
+            "logging_config": [
+              {
+                "application_log_level": "",
+                "log_format": "Text",
+                "log_group": "/aws/lambda/sales-csv-processor",
+                "system_log_level": ""
+              }
+            ],
+            "memory_size": 512,
+            "package_type": "Zip",
+            "publish": false,
+            "qualified_arn": "arn:aws:lambda:ap-south-1:102413378525:function:sales-csv-processor:$LATEST",
+            "qualified_invoke_arn": "arn:aws:apigateway:ap-south-1:lambda:path/2015-03-31/functions/arn:aws:lambda:ap-south-1:102413378525:function:sales-csv-processor:$LATEST/invocations",
+            "replace_security_groups_on_destroy": null,
+            "replacement_security_group_ids": null,
+            "reserved_concurrent_executions": -1,
+            "role": "arn:aws:iam::102413378525:role/sales-csv-processor-lambda-role",
+            "runtime": "nodejs18.x",
+            "s3_bucket": null,
+            "s3_key": null,
+            "s3_object_version": null,
+            "signing_job_arn": "",
+            "signing_profile_version_arn": "",
+            "skip_destroy": false,
+            "snap_start": [],
+            "source_code_hash": "",
+            "source_code_size": 15820,
+            "tags": {
+              "Environment": "production",
+              "Purpose": "csv-processing"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Purpose": "csv-processing"
+            },
+            "timeout": 300,
+            "timeouts": null,
+            "tracing_config": [
+              {
+                "mode": "PassThrough"
+              }
+            ],
+            "version": "$LATEST",
+            "vpc_config": []
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6NjAwMDAwMDAwMDAwLCJ1cGRhdGUiOjYwMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "aws_iam_role.lambda_role",
+            "aws_s3_bucket.sales_reports",
+            "aws_sqs_queue.sales_processing",
+            "aws_sqs_queue.sales_processing_dlq",
+            "aws_sqs_queue.sales_validation_failed",
+            "aws_sqs_queue.sales_validation_failed_dlq",
+            "random_string.bucket_suffix"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "sales_reports",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "acceleration_status": "",
+            "acl": null,
+            "arn": "arn:aws:s3:::daily-sales-reports-sbkcdzid",
+            "bucket": "daily-sales-reports-sbkcdzid",
+            "bucket_domain_name": "daily-sales-reports-sbkcdzid.s3.amazonaws.com",
+            "bucket_prefix": "",
+            "bucket_regional_domain_name": "daily-sales-reports-sbkcdzid.s3.ap-south-1.amazonaws.com",
+            "cors_rule": [],
+            "force_destroy": false,
+            "grant": [
+              {
+                "id": "3ede03ac3f961862e9e88f2955f4984cd4ea399f3ed36545a8b5e81808dfa79b",
+                "permissions": [
+                  "FULL_CONTROL"
+                ],
+                "type": "CanonicalUser",
+                "uri": ""
+              }
+            ],
+            "hosted_zone_id": "Z11RGJOFQNVJUP",
+            "id": "daily-sales-reports-sbkcdzid",
+            "lifecycle_rule": [
+              {
+                "abort_incomplete_multipart_upload_days": 0,
+                "enabled": true,
+                "expiration": [
+                  {
+                    "date": "",
+                    "days": 30,
+                    "expired_object_delete_marker": false
+                  }
+                ],
+                "id": "processed_files_glacier",
+                "noncurrent_version_expiration": [],
+                "noncurrent_version_transition": [],
+                "prefix": "processed/",
+                "tags": {},
+                "transition": [
+                  {
+                    "date": "",
+                    "days": 7,
+                    "storage_class": "GLACIER"
+                  }
+                ]
+              },
+              {
+                "abort_incomplete_multipart_upload_days": 0,
+                "enabled": true,
+                "expiration": [
+                  {
+                    "date": "",
+                    "days": 14,
+                    "expired_object_delete_marker": false
+                  }
+                ],
+                "id": "failed_files_cleanup",
+                "noncurrent_version_expiration": [],
+                "noncurrent_version_transition": [],
+                "prefix": "failed/",
+                "tags": {},
+                "transition": []
+              }
+            ],
+            "logging": [],
+            "object_lock_configuration": [],
+            "object_lock_enabled": false,
+            "policy": "",
+            "region": "ap-south-1",
+            "replication_configuration": [],
+            "request_payer": "BucketOwner",
+            "server_side_encryption_configuration": [
+              {
+                "rule": [
+                  {
+                    "apply_server_side_encryption_by_default": [
+                      {
+                        "kms_master_key_id": "",
+                        "sse_algorithm": "AES256"
+                      }
+                    ],
+                    "bucket_key_enabled": false
+                  }
+                ]
+              }
+            ],
+            "tags": {},
+            "tags_all": {},
+            "timeouts": null,
+            "versioning": [
+              {
+                "enabled": true,
+                "mfa_delete": false
+              }
+            ],
+            "website": [],
+            "website_domain": null,
+            "website_endpoint": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDAwLCJkZWxldGUiOjM2MDAwMDAwMDAwMDAsInJlYWQiOjEyMDAwMDAwMDAwMDAsInVwZGF0ZSI6MTIwMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "random_string.bucket_suffix"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_sqs_queue",
+      "name": "sales_processing",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sqs:ap-south-1:102413378525:sales-processing-queue-zilen",
+            "content_based_deduplication": false,
+            "deduplication_scope": "",
+            "delay_seconds": 0,
+            "fifo_queue": false,
+            "fifo_throughput_limit": "",
+            "id": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-processing-queue-zilen",
+            "kms_data_key_reuse_period_seconds": 300,
+            "kms_master_key_id": "",
+            "max_message_size": 262144,
+            "message_retention_seconds": 1209600,
+            "name": "sales-processing-queue-zilen",
+            "name_prefix": "",
+            "policy": "",
+            "receive_wait_time_seconds": 0,
+            "redrive_allow_policy": "",
+            "redrive_policy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:ap-south-1:102413378525:sales-processing-dlq-zilen\",\"maxReceiveCount\":3}",
+            "sqs_managed_sse_enabled": true,
+            "tags": {
+              "Environment": "production",
+              "Purpose": "sales-processing"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Purpose": "sales-processing"
+            },
+            "timeouts": null,
+            "url": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-processing-queue-zilen",
+            "visibility_timeout_seconds": 300
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAsImRlbGV0ZSI6MTgwMDAwMDAwMDAwLCJ1cGRhdGUiOjE4MDAwMDAwMDAwMH19",
+          "dependencies": [
+            "aws_sqs_queue.sales_processing_dlq"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_sqs_queue",
+      "name": "sales_processing_dlq",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sqs:ap-south-1:102413378525:sales-processing-dlq-zilen",
+            "content_based_deduplication": false,
+            "deduplication_scope": "",
+            "delay_seconds": 0,
+            "fifo_queue": false,
+            "fifo_throughput_limit": "",
+            "id": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-processing-dlq-zilen",
+            "kms_data_key_reuse_period_seconds": 300,
+            "kms_master_key_id": "",
+            "max_message_size": 262144,
+            "message_retention_seconds": 1209600,
+            "name": "sales-processing-dlq-zilen",
+            "name_prefix": "",
+            "policy": "",
+            "receive_wait_time_seconds": 0,
+            "redrive_allow_policy": "",
+            "redrive_policy": "",
+            "sqs_managed_sse_enabled": true,
+            "tags": {
+              "Environment": "production",
+              "Purpose": "sales-processing-dlq"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Purpose": "sales-processing-dlq"
+            },
+            "timeouts": null,
+            "url": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-processing-dlq-zilen",
+            "visibility_timeout_seconds": 30
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAsImRlbGV0ZSI6MTgwMDAwMDAwMDAwLCJ1cGRhdGUiOjE4MDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_sqs_queue",
+      "name": "sales_validation_failed",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sqs:ap-south-1:102413378525:sales-validation-failed-queue-zilen",
+            "content_based_deduplication": false,
+            "deduplication_scope": "",
+            "delay_seconds": 0,
+            "fifo_queue": false,
+            "fifo_throughput_limit": "",
+            "id": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-validation-failed-queue-zilen",
+            "kms_data_key_reuse_period_seconds": 300,
+            "kms_master_key_id": "",
+            "max_message_size": 262144,
+            "message_retention_seconds": 1209600,
+            "name": "sales-validation-failed-queue-zilen",
+            "name_prefix": "",
+            "policy": "",
+            "receive_wait_time_seconds": 0,
+            "redrive_allow_policy": "",
+            "redrive_policy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:ap-south-1:102413378525:sales-validation-failed-dlq-zilen\",\"maxReceiveCount\":3}",
+            "sqs_managed_sse_enabled": true,
+            "tags": {
+              "Environment": "production",
+              "Purpose": "sales-validation-failed"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Purpose": "sales-validation-failed"
+            },
+            "timeouts": null,
+            "url": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-validation-failed-queue-zilen",
+            "visibility_timeout_seconds": 300
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAsImRlbGV0ZSI6MTgwMDAwMDAwMDAwLCJ1cGRhdGUiOjE4MDAwMDAwMDAwMH19",
+          "dependencies": [
+            "aws_sqs_queue.sales_validation_failed_dlq"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_sqs_queue",
+      "name": "sales_validation_failed_dlq",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sqs:ap-south-1:102413378525:sales-validation-failed-dlq-zilen",
+            "content_based_deduplication": false,
+            "deduplication_scope": "",
+            "delay_seconds": 0,
+            "fifo_queue": false,
+            "fifo_throughput_limit": "",
+            "id": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-validation-failed-dlq-zilen",
+            "kms_data_key_reuse_period_seconds": 300,
+            "kms_master_key_id": "",
+            "max_message_size": 262144,
+            "message_retention_seconds": 1209600,
+            "name": "sales-validation-failed-dlq-zilen",
+            "name_prefix": "",
+            "policy": "",
+            "receive_wait_time_seconds": 0,
+            "redrive_allow_policy": "",
+            "redrive_policy": "",
+            "sqs_managed_sse_enabled": true,
+            "tags": {
+              "Environment": "production",
+              "Purpose": "sales-validation-failed-dlq"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Purpose": "sales-validation-failed-dlq"
+            },
+            "timeouts": null,
+            "url": "https://sqs.ap-south-1.amazonaws.com/102413378525/sales-validation-failed-dlq-zilen",
+            "visibility_timeout_seconds": 30
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAsImRlbGV0ZSI6MTgwMDAwMDAwMDAwLCJ1cGRhdGUiOjE4MDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "random_string",
+      "name": "bucket_suffix",
+      "provider": "provider[\"registry.terraform.io/hashicorp/random\"]",
+      "instances": [
+        {
+          "schema_version": 2,
+          "attributes": {
+            "id": "sbkcdzid",
+            "keepers": null,
+            "length": 8,
+            "lower": true,
+            "min_lower": 0,
+            "min_numeric": 0,
+            "min_special": 0,
+            "min_upper": 0,
+            "number": true,
+            "numeric": true,
+            "override_special": null,
+            "result": "sbkcdzid",
+            "special": false,
+            "upper": false
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}
