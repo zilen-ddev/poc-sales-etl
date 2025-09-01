@@ -194,57 +194,13 @@ resource "aws_iam_role" "lambda_execution_role" {
   }
 }
 
-# IAM Policy for Lambda function
-resource "aws_iam_role_policy" "lambda_policy" {
-  name = "sales-csv-processor-policy"
-  role = aws_iam_role.lambda_execution_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Resource = "arn:aws:logs:*:*:*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject",
-          "s3:CopyObject"
-        ]
-        Resource = [
-          "${aws_s3_bucket.sales_reports.arn}/*"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "sqs:SendMessage",
-          "sqs:GetQueueAttributes"
-        ]
-        Resource = [
-          aws_sqs_queue.sales_processing.arn,
-          aws_sqs_queue.sales_validation_failed.arn
-        ]
-      }
-    ]
-  })
-}
-
 # Lambda function
 resource "aws_lambda_function" "csv_processor" {
-  filename         = "../lambda/csv-processor/csv-processor.zip"
+  filename         = "../lambda/csv-processor.zip"
   function_name    = "sales-csv-processor"
   role            = aws_iam_role.lambda_execution_role.arn
-  handler         = "index.handler"
-  source_code_hash = filebase64sha256("../lambda/csv-processor/csv-processor.zip")
+  handler         = "csv-processor.handler"
+  source_code_hash = filebase64sha256("../lambda/csv-processor.zip")
   runtime         = "nodejs18.x"
   timeout         = var.lambda_timeout
   memory_size     = var.lambda_memory

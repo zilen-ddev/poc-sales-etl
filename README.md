@@ -5,9 +5,11 @@ A serverless data ingestion pipeline for processing daily sales reports in CSV f
 ## Architecture Overview
 
 ```
-S3 (incoming/) → Lambda (CSV Processor) → SQS Queues → Processing Systems
-                     ↓
-                S3 (processed/ or failed/)
+S3 (incoming/) → Lambda (CSV Processor)
+                    ├─ valid rows → SQS: sales-processing-queue-zilen
+                    └─ invalid rows → SQS: sales-validation-failed-queue-zilen
+
+File outcome: processed/ (all valid) or failed/ (any invalid)
 ```
 
 ### Components
@@ -16,7 +18,7 @@ S3 (incoming/) → Lambda (CSV Processor) → SQS Queues → Processing Systems
 - **Lambda Function**: Processes CSV files and validates sales data
 - **SQS Queues**: Handle valid data processing and validation failures
 - **Dead Letter Queues (DLQ)**: Capture failed messages for reprocessing
-- **CloudWatch**: Monitor Lambda execution and performance
+- **CloudWatch Logs**: Monitor Lambda execution
 
 ## Features
 
@@ -32,7 +34,7 @@ S3 (incoming/) → Lambda (CSV Processor) → SQS Queues → Processing Systems
 
 ### S3 Bucket Structure
 ```
-daily-sales-reports-{suffix}/
+daily-sales-reports-zilen/
 ├── incoming/     # New CSV files (triggers Lambda)
 ├── processed/    # Successfully processed files
 └── failed/       # Files with validation errors
@@ -73,31 +75,19 @@ The pipeline validates the following fields in each CSV row:
 
 ### Steps
 
-1. **Navigate to terraform directory**
+1. Package Lambda (from `lambda/`):
+   ```bash
+   npm ci --omit=dev
+   zip -r csv-processor.zip csv-processor.js utils node_modules package.json package-lock.json \
+     -x "*.zip" "node_modules/.cache/*" "*.log"
+   ```
+
+2. Deploy infrastructure:
    ```bash
    cd terraform
-   ```
-
-2. **Initialize Terraform**
-   ```bash
    terraform init
-   ```
-
-3. **Review the plan**
-   ```bash
    terraform plan
-   ```
-
-4. **Deploy the infrastructure**
-   ```bash
    terraform apply
-   ```
-
-5. **Package and deploy Lambda function**
-   ```bash
-   cd ../lambda/csv-processor
-   npm install
-   npm run package
    ```
 
 ### Configuration
@@ -128,7 +118,7 @@ S002,P002,1,15.50,2024-01-15,C002,South,Clothing
 
 - **CloudWatch Logs**: `/aws/lambda/sales-csv-processor`
 - **SQS Metrics**: Monitor queue depths and processing times
-- **S3 Metrics**: Track file processing and storage costs
+- **S3 Lifecycle**: Verify transitions and expirations
 
 ## SQS Redrive Process
 
