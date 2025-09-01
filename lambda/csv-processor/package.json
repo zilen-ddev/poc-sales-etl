@@ -1,0 +1,30 @@
+{
+  "name": "csv-processor-lambda",
+  "version": "1.0.0",
+  "description": "AWS Lambda function for processing CSV files from S3 and storing in DynamoDB",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "zip -r csv-processor.zip . -x '*.git*' 'node_modules/*' '*.zip'"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "csv",
+    "s3",
+    "dynamodb",
+    "etl"
+  ],
+  "author": "Zilen Modi",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.1691.0",
+    "csv-parser": "^3.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
