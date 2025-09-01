@@ -59,3 +59,121 @@ jspm_packages/
 
 # Yarn Integrity file
 .yarn-integrity
+
+# Terraform additional files
+terraform/*.tfvars
+terraform/*.tfvars.json
+terraform/override.tf
+terraform/override.tf.json
+terraform/*_override.tf
+terraform/*_override.tf.json
+terraform/.terraformrc
+terraform/terraform.rc
+
+# AWS Lambda specific
+lambda/*/dist/
+lambda/*/build/
+lambda/*/out/
+lambda/*/.aws-sam/
+
+# Python (if using Python lambdas in future)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Archive files
+*.tar
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# AWS credentials and config
+.aws/
+aws-credentials.json
+
+# Local development
+.local/
+local/
+
+# ETL/Data Processing specific
+data/
+datasets/
+*.csv
+*.tsv
+*.json
+*.parquet
+*.avro
+*.orc
+sample-data/
+test-data/
+raw-data/
+processed-data/
+
+# Build and deployment artifacts
+dist/
+build/
+out/
+target/
+*.jar
+*.war
+*.ear
+
+# Testing
+test-results/
+coverage/
+.nyc_output/
+junit.xml
+test-reports/
+
+# Documentation build
+docs/_build/
+site/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Docker
+.dockerignore
+Dockerfile.dev
+docker-compose.override.yml
+
+# Kubernetes
+*.kubeconfig
+
+# Monitoring and observability
+grafana/
+prometheus/
+*.metrics
+
+# Secrets and sensitive data
+secrets/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
