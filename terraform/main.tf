@@ -12,6 +12,19 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Create zip file from backend source code
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_dir  = "../backend"
+  output_path = "../backend/lambda.zip"
+  excludes = [
+    "*.zip",
+    "node_modules/.cache/*",
+    "*.log",
+    "README.md"
+  ]
+}
+
 # S3 Bucket for sales reports
 resource "aws_s3_bucket" "sales_reports" {
   bucket = "daily-sales-reports-zilen"
@@ -170,9 +183,9 @@ resource "aws_sqs_queue_redrive_policy" "sales_validation_failed" {
   })
 }
 
-# IAM Role for Lambda function
+# IAM Role for Lambda functions
 resource "aws_iam_role" "lambda_execution_role" {
-  name = "sales-csv-processor-role"
+  name = "sales-etl-lambda-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -188,19 +201,19 @@ resource "aws_iam_role" "lambda_execution_role" {
   })
 
   tags = {
-    Name        = "Sales CSV Processor Role"
+    Name        = "Sales ETL Lambda Role"
     Environment = var.environment
     Project     = "ETL Sales Pipeline"
   }
 }
 
-# Lambda function
+# CSV Processor Lambda function
 resource "aws_lambda_function" "csv_processor" {
-  filename         = "../lambda/csv-processor.zip"
+  filename         = data.archive_file.lambda_zip.output_path
   function_name    = "sales-csv-processor"
   role            = aws_iam_role.lambda_execution_role.arn
-  handler         = "csv-processor.handler"
-  source_code_hash = filebase64sha256("../lambda/csv-processor.zip")
+  handler         = "src/handlers/csv-processor.handler"
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
   runtime         = "nodejs18.x"
   timeout         = var.lambda_timeout
   memory_size     = var.lambda_memory
@@ -210,11 +223,63 @@ resource "aws_lambda_function" "csv_processor" {
       PROCESSING_QUEUE_URL = aws_sqs_queue.sales_processing.id
       VALIDATION_FAILED_QUEUE_URL = aws_sqs_queue.sales_validation_failed.id
       S3_BUCKET = aws_s3_bucket.sales_reports.bucket
+      NODE_ENV = var.environment
+      LOG_LEVEL = "INFO"
     }
   }
 
   tags = {
     Name        = "Sales CSV Processor"
+    Environment = var.environment
+    Project     = "ETL Sales Pipeline"
+  }
+}
+
+# Sales Processor Lambda function
+resource "aws_lambda_function" "sales_processor" {
+  filename         = data.archive_file.lambda_zip.output_path
+  function_name    = "sales-processor"
+  role            = aws_iam_role.lambda_execution_role.arn
+  handler         = "src/handlers/sales-processor.handler"
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  runtime         = "nodejs18.x"
+  timeout         = var.lambda_timeout
+  memory_size     = var.lambda_memory
+
+  environment {
+    variables = {
+      NODE_ENV = var.environment
+      LOG_LEVEL = "INFO"
+    }
+  }
+
+  tags = {
+    Name        = "Sales Processor"
+    Environment = var.environment
+    Project     = "ETL Sales Pipeline"
+  }
+}
+
+# Validation Failed Lambda function
+resource "aws_lambda_function" "validation_failed_processor" {
+  filename         = data.archive_file.lambda_zip.output_path
+  function_name    = "sales-validation-failed-processor"
+  role            = aws_iam_role.lambda_execution_role.arn
+  handler         = "src/handlers/validation-failed-handler.handler"
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  runtime         = "nodejs18.x"
+  timeout         = var.lambda_timeout
+  memory_size     = var.lambda_memory
+
+  environment {
+    variables = {
+      NODE_ENV = var.environment
+      LOG_LEVEL = "INFO"
+    }
+  }
+
+  tags = {
+    Name        = "Sales Validation Failed Processor"
     Environment = var.environment
     Project     = "ETL Sales Pipeline"
   }
@@ -240,4 +305,20 @@ resource "aws_lambda_permission" "allow_s3" {
   function_name = aws_lambda_function.csv_processor.function_name
   principal     = "s3.amazonaws.com"
   source_arn    = aws_s3_bucket.sales_reports.arn
+}
+
+# SQS Event Source Mapping for Sales Processor
+resource "aws_lambda_event_source_mapping" "sales_processor_sqs" {
+  event_source_arn = aws_sqs_queue.sales_processing.arn
+  function_name    = aws_lambda_function.sales_processor.arn
+  batch_size       = 10
+  maximum_batching_window_in_seconds = 5
+}
+
+# SQS Event Source Mapping for Validation Failed Processor
+resource "aws_lambda_event_source_mapping" "validation_failed_processor_sqs" {
+  event_source_arn = aws_sqs_queue.sales_validation_failed.arn
+  function_name    = aws_lambda_function.validation_failed_processor.arn
+  batch_size       = 10
+  maximum_batching_window_in_seconds = 5
 }
