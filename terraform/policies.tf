@@ -42,8 +42,8 @@ resource "aws_iam_policy" "lambda_s3" {
 }
 
 resource "aws_iam_policy" "lambda_sqs" {
-  name        = "sales-csv-processor-sqs-policy"
-  description = "Allow Lambda to send messages to processing and validation failed queues"
+  name        = "sales-etl-lambda-sqs-policy"
+  description = "Allow Lambda to send and receive messages from SQS queues"
 
   policy = jsonencode({
     Version = "2012-10-17",
@@ -52,7 +52,10 @@ resource "aws_iam_policy" "lambda_sqs" {
         Effect = "Allow",
         Action = [
           "sqs:SendMessage",
-          "sqs:GetQueueAttributes"
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes",
+          "sqs:ChangeMessageVisibility"
         ],
         Resource = [
           aws_sqs_queue.sales_processing.arn,

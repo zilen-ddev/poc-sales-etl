@@ -8,14 +8,34 @@ output "s3_bucket_arn" {
   value       = aws_s3_bucket.sales_reports.arn
 }
 
-output "lambda_function_name" {
-  description = "Name of the Lambda function"
+output "csv_processor_function_name" {
+  description = "Name of the CSV Processor Lambda function"
   value       = aws_lambda_function.csv_processor.function_name
 }
 
-output "lambda_function_arn" {
-  description = "ARN of the Lambda function"
+output "csv_processor_function_arn" {
+  description = "ARN of the CSV Processor Lambda function"
   value       = aws_lambda_function.csv_processor.arn
+}
+
+output "sales_processor_function_name" {
+  description = "Name of the Sales Processor Lambda function"
+  value       = aws_lambda_function.sales_processor.function_name
+}
+
+output "sales_processor_function_arn" {
+  description = "ARN of the Sales Processor Lambda function"
+  value       = aws_lambda_function.sales_processor.arn
+}
+
+output "validation_failed_processor_function_name" {
+  description = "Name of the Validation Failed Processor Lambda function"
+  value       = aws_lambda_function.validation_failed_processor.function_name
+}
+
+output "validation_failed_processor_function_arn" {
+  description = "ARN of the Validation Failed Processor Lambda function"
+  value       = aws_lambda_function.validation_failed_processor.arn
 }
 
 output "processing_queue_url" {
